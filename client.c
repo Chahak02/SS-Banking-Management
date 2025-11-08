@@ -67,6 +67,8 @@ int main()
             continue;
         }
 
+        // FIXED: send entire integer
+        // OLD: send(clientSocket, &menu_choice, sizeof(menu_choice), 0);
         if (send(clientSocket, &menu_choice, sizeof(menu_choice), 0) <= 0)
         {
             perror("send menu_choice failed");
@@ -79,12 +81,14 @@ int main()
         {
             // Authentication
             printf("Enter username: \n");
-
+            // OLD: scanf("%s", username);
+            // FIXED: use scanf but guard overflow, and consume newline
             if (scanf("%1023s", username) != 1)
             {
                 username[0] = '\0';
             }
-
+            // OLD: send(clientSocket, username, strlen(username), 0);
+            // FIXED: send the terminating NUL too so server gets full C-string
             if (send(clientSocket, username, strlen(username) + 1, 0) <= 0)
             {
                 perror("send username failed");
@@ -128,6 +132,8 @@ int main()
             }
             auth_buffer[auth_rcv] = '\0';
 
+            // IMPORTANT: Compare strings with exact expected server message.
+            // You might want to print actual server message once; adjust comparison to match server.
             if (strcmp("Authentication Successful", auth_buffer) == 0 || strcmp("admin authenticated", auth_buffer) == 0 || strcmp("authenticated", auth_buffer) == 0)
             {
                 printf("Authentication Successful.\n");
@@ -197,6 +203,18 @@ int main()
                         }
                         deposit_buf[rec_deposit] = '\0';
                         printf("%s\n", deposit_buf);
+
+                        // // Receive updated balance
+                        // char deposit_buff2[1024];
+                        // memset(deposit_buff2, 0, sizeof(deposit_buff2));
+                        // int rec_dp2 = recv(clientSocket, deposit_buff2, sizeof(deposit_buff2) - 1, 0);
+                        // if (rec_dp2 <= 0)
+                        // {
+                        //     perror("recv updated balance failed");
+                        //     break;
+                        // }
+                        // deposit_buff2[rec_dp2] = '\0';
+                        // printf("%s\n", deposit_buff2);
                         break;
                     }
 
@@ -225,6 +243,17 @@ int main()
                         withdraw_buff[rec_withdraw] = '\0';
                         printf("%s\n", withdraw_buff);
 
+                        // // Receive updated balance
+                        // char withdraw_buff2[1024];
+                        // memset(withdraw_buff2, 0, sizeof(withdraw_buff2));
+                        // int rec_withdraw2 = recv(clientSocket, withdraw_buff2, sizeof(withdraw_buff2) - 1, 0);
+                        // if (rec_withdraw2 <= 0)
+                        // {
+                        //     perror("recv withdraw updated failed");
+                        //     break;
+                        // }
+                        // withdraw_buff2[rec_withdraw2] = '\0';
+                        // printf("%s\n", withdraw_buff2);
                         break;
                     }
 
@@ -299,13 +328,13 @@ int main()
                         char new_pswd1[1024];
                         if (scanf("%1023s", new_pswd1) != 1)
                             new_pswd1[0] = '\0';
-
+                        // OLD: send(clientSocket, new_pswd1, strlen(new_pswd1), 0);
+                        // FIXED:
                         if (send(clientSocket, new_pswd1, strlen(new_pswd1) + 1, 0) <= 0)
                         {
                             perror("send new password failed");
                             break;
                         }
-
                         char rec_pswd_buff[1024];
                         memset(rec_pswd_buff, 0, sizeof(rec_pswd_buff));
                         int rec_new_pswd1 = recv(clientSocket, rec_pswd_buff, sizeof(rec_pswd_buff) - 1, 0);
@@ -314,7 +343,6 @@ int main()
                             perror("recv change password ack failed");
                             break;
                         }
-
                         rec_pswd_buff[rec_new_pswd1] = '\0';
                         printf("%s\n", rec_pswd_buff);
                         break;
@@ -324,36 +352,34 @@ int main()
                     {
                         printf("Enter feedback: \n");
                         char feed[256];
-
+                        // OLD: scanf("%s", feed);
+                        // FIXED: use fgets to allow spaces
                         int c;
-                        // flush newline
                         while ((c = getchar()) != '\n' && c != EOF)
                         {
-                        }
+                        } // flush newline
                         if (fgets(feed, sizeof(feed), stdin) == NULL)
                             feed[0] = '\0';
-
                         // trim trailing newline
                         size_t ln = strlen(feed);
                         if (ln && feed[ln - 1] == '\n')
                             feed[ln - 1] = '\0';
 
+                        // OLD: send(clientSocket, feed, sizeof(feed), 0);
+                        // FIXED:
                         if (send(clientSocket, feed, strlen(feed) + 1, 0) <= 0)
                         {
                             perror("send feedback failed");
                             break;
                         }
-
                         char feed_buff[1024];
                         memset(feed_buff, 0, sizeof(feed_buff));
                         int rec_feed = recv(clientSocket, feed_buff, sizeof(feed_buff) - 1, 0);
-
                         if (rec_feed <= 0)
                         {
                             perror("recv feedback ack failed");
                             break;
                         }
-
                         feed_buff[rec_feed] = '\0';
                         printf("%s\n", feed_buff);
                         break;
@@ -368,13 +394,11 @@ int main()
                         char logout_buff[1024];
                         memset(logout_buff, 0, sizeof(logout_buff));
                         int rec_logout = recv(clientSocket, logout_buff, sizeof(logout_buff) - 1, 0);
-
                         if (rec_logout <= 0)
                         {
                             perror("recv logout failed");
                             break;
                         }
-
                         logout_buff[rec_logout] = '\0';
                         printf("%s\n", logout_buff);
                         break;
@@ -385,13 +409,11 @@ int main()
                         char buffer_cust[100];
                         memset(buffer_cust, 0, sizeof(buffer_cust));
                         int rcv_cust = recv(clientSocket, buffer_cust, sizeof(buffer_cust) - 1, 0);
-
                         if (rcv_cust <= 0)
                         {
                             perror("recv mgr exit failed");
                             break;
                         }
-
                         buffer_cust[rcv_cust] = '\0';
                         printf("%s\n", buffer_cust);
                         exit(0);
@@ -423,7 +445,8 @@ int main()
 
             if (scanf("%127s", username_buffer) != 1)
                 username_buffer[0] = '\0';
-
+            // OLD: send(clientSocket, username_buffer, strlen(username_buffer), 0);
+            // FIXED:
             if (send(clientSocket, username_buffer, strlen(username_buffer) + 1, 0) <= 0)
             {
                 perror("send emp username failed");
@@ -433,7 +456,8 @@ int main()
             printf("Enter password: \n");
             if (scanf("%127s", password_buffer) != 1)
                 password_buffer[0] = '\0';
-
+            // OLD: send(clientSocket, password_buffer, strlen(password_buffer), 0);
+            // FIXED:
             if (send(clientSocket, password_buffer, strlen(password_buffer) + 1, 0) <= 0)
             {
                 perror("send emp password failed");
@@ -495,7 +519,8 @@ int main()
                         char user_name[100];
                         if (scanf("%99s", user_name) != 1)
                             user_name[0] = '\0';
-
+                        // OLD: send(clientSocket, &user_name, strlen(user_name), 0);
+                        // FIXED:
                         if (send(clientSocket, user_name, strlen(user_name) + 1, 0) <= 0)
                         {
                             perror("send new customer name failed");
@@ -587,7 +612,7 @@ int main()
                             break;
                         }
 
-                        printf("Enter key to update the following characterstices:\n1) Name\n2) Contact\n3) Address\n");
+                        printf("Enter key to update the following characterstices \npress 1 for name. \npress 2 for contact. \npress 3 for address. \n");
                         int choice;
                         if (scanf("%d", &choice) != 1)
                             choice = 0;
@@ -598,9 +623,9 @@ int main()
                         }
                         switch (choice)
                         {
-                        case 1: // to modify name
+                        case 1:
                         {
-                            printf("Enter new customer name: \n");
+                            printf("enter new customer name: \n");
                             char name[256];
                             if (scanf("%255s", name) != 1)
                                 name[0] = '\0';
@@ -611,9 +636,9 @@ int main()
                             }
                             break;
                         }
-                        case 2: // to modify contact
+                        case 2:
                         {
-                            printf("Enter new contact: \n");
+                            printf("enter new contact: \n");
                             int contact2;
                             if (scanf("%d", &contact2) != 1)
                                 contact2 = 0;
@@ -624,7 +649,7 @@ int main()
                             }
                             break;
                         }
-                        case 3: // to modify address
+                        case 3:
                         {
                             printf("Enter new address for customer: \n");
                             char address2[100];
@@ -1060,6 +1085,7 @@ int main()
                     switch (choice)
                     {
                     case 1: // Add New Bank Employee
+                    {
                         printf("enter user name: \n");
                         char emp_name[256];
                         if (scanf("%255s", emp_name) != 1)
@@ -1108,8 +1134,9 @@ int main()
                             printf("employee added \n");
                         }
                         break;
-
+                    }
                     case 2: // Modify Customer
+                    {
                         printf("Enter customer id that you want to modify:\n");
                         int id2;
                         if (scanf("%d", &id2) != 1)
@@ -1131,7 +1158,7 @@ int main()
                         }
                         switch (ch_key)
                         {
-                        case 1: // to modify name
+                        case 1:
                         {
                             printf("enter new customer name: \n");
                             char new_name[256];
@@ -1144,7 +1171,7 @@ int main()
                             }
                             break;
                         }
-                        case 2: // to modify contact
+                        case 2:
                         {
                             printf("enter new contact: \n");
                             int contact_new;
@@ -1157,7 +1184,7 @@ int main()
                             }
                             break;
                         }
-                        case 3: // to modify address
+                        case 3:
                         {
                             printf("Enter new address for customer: \n");
                             char address_new[100];
@@ -1193,8 +1220,9 @@ int main()
                             printf("user not updated.\n");
                         }
                         break;
-
+                    }
                     case 3: // Modify Employee
+                    {
                         printf("Enter employee id that you want to modify:\n");
                         int id3;
                         if (scanf("%d", &id3) != 1)
@@ -1229,8 +1257,9 @@ int main()
                             return 1;
                         }
                         break;
-
+                    }
                     case 4: // Manage User Roles
+                    {
                         printf("Enter employee id that you want to make manager.\n");
                         int id5;
                         if (scanf("%d", &id5) != 1)
@@ -1251,8 +1280,9 @@ int main()
                         s2[rcv5] = '\0';
                         printf("%s", s2);
                         break;
-
+                    }
                     case 5: // Change password
+                    {
                         printf("Enter new password:\n");
                         char buff3[256];
                         if (scanf("%255s", buff3) != 1)
@@ -1273,8 +1303,9 @@ int main()
                         s3[rcv6] = '\0';
                         printf("%s", s3);
                         break;
-
+                    }
                     case 6: // Logout
+                    {
                         char s4[200];
                         memset(s4, 0, sizeof(s4));
                         int rcv7 = recv(clientSocket, s4, sizeof(s4) - 1, 0);
@@ -1286,8 +1317,9 @@ int main()
                         s4[rcv7] = '\0';
                         printf("%s", s4);
                         break;
-
+                    }
                     case 7: // Exit
+                    {
                         char buffer_admin[100];
                         memset(buffer_admin, 0, sizeof(buffer_admin));
                         int rcv_admin = recv(clientSocket, buffer_admin, sizeof(buffer_admin) - 1, 0);
@@ -1300,7 +1332,7 @@ int main()
                         printf("%s\n", buffer_admin);
                         exit(0);
                         break;
-
+                    }
                     default:
                         printf("enter valid argument \n");
                         break;
@@ -1321,6 +1353,7 @@ int main()
         } // end switch
     } // end while
 
+    // Cleanup
     close(clientSocket);
     return 0;
 }

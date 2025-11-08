@@ -87,11 +87,11 @@ bool handle_customer(int client_socket)
 
 		switch (menu_options_recv)
 		{
-		case 1: // View customer's balance
+		case 1:
 			view_balance(client_socket, userid_buffer);
 			break;
-
-		case 2: // Deposit amount to customer's account
+		case 2:
+		{
 			int amount;
 			int r = recv(client_socket, &amount, sizeof(amount), 0);
 			if (r <= 0)
@@ -102,8 +102,9 @@ bool handle_customer(int client_socket)
 			}
 			deposit(client_socket, userid_buffer, amount);
 			break;
-
-		case 3: // Withdraw amount from customer's account
+		}
+		case 3:
+		{
 			int withdraw_amount;
 			int r = recv(client_socket, &withdraw_amount, sizeof(withdraw_amount), 0);
 			if (r <= 0)
@@ -114,8 +115,9 @@ bool handle_customer(int client_socket)
 			}
 			withdraw(client_socket, userid_buffer, withdraw_amount);
 			break;
-
-		case 4: // Transfer funds to another customer
+		}
+		case 4:
+		{
 			int receiver_customer_id;
 			int r = recv(client_socket, &receiver_customer_id, sizeof(receiver_customer_id), 0);
 			if (r <= 0)
@@ -136,8 +138,9 @@ bool handle_customer(int client_socket)
 
 			transfer_fund(client_socket, userid_buffer, receiver_customer_id, transfer_amount);
 			break;
-
-		case 5: // Apply an application for a loan
+		}
+		case 5:
+		{
 			int loan_amount;
 			int r = recv(client_socket, &loan_amount, sizeof(loan_amount), 0);
 			if (r <= 0)
@@ -148,12 +151,12 @@ bool handle_customer(int client_socket)
 			}
 			apply_loan(client_socket, userid_buffer, loan_amount);
 			break;
-
-		case 6: // Edit customer's credentials
+		}
+		case 6:
 			edit_credentials_customer(client_socket, userid_buffer);
 			break;
-
-		case 7: // Provide feedback
+		case 7:
+		{
 			char feedback[1024];
 			int r = recv(client_socket, feedback, sizeof(feedback) - 1, 0);
 			if (r <= 0)
@@ -165,22 +168,24 @@ bool handle_customer(int client_socket)
 			feedback[r] = '\0';
 			add_feedback(client_socket, userid_buffer, feedback);
 			break;
-
-		case 8: // View transaction history
+		}
+		case 8:
 			show_transaction_history(userid_buffer);
 			break;
-
-		case 9: // Logout
+		case 9:
 			customer_logout(client_socket, userid_buffer);
 			return true;
-
-		case 10: // Exit
+		case 10:
+			// send(client_socket, "Exiting..\n", strlen("Exiting..\n"), 0);
+			// if (authenticated)
+			// 	customer_logout(client_socket, auth_userid);
+			// close(client_socket);
+			// exit(0);
 			send(client_socket, "Exiting...\n", strlen("Exiting...\n"), 0);
 			if (authenticated)
 				customer_logout(client_socket, auth_userid);
 			close(client_socket);
 			exit(0);
-
 		default:
 			break;
 		}

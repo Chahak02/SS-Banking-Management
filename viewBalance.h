@@ -1,3 +1,5 @@
+
+
 #ifndef VIEWBALANCE_H
 #define VIEWBALANCE_H
 

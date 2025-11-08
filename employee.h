@@ -91,15 +91,16 @@ bool handle_employee(int client_socket)
 
         switch (menu_options_recv)
         {
-        case 1: // Add new customer
+        case 1:
             add_customer(client_socket);
             break;
 
-        case 2: // Edit existing customer
+        case 2:
             edit_customer(client_socket);
             break;
 
-        case 3: // Approve loan application
+        case 3:
+        {
             int customer_id;
             int r = recv(client_socket, &customer_id, sizeof(customer_id), 0);
             if (r <= 0)
@@ -110,24 +111,30 @@ bool handle_employee(int client_socket)
             }
             approve_loan(client_socket, userid_buffer, customer_id);
             break;
+        }
 
-        case 4: // View assigned loan applications
+        case 4:
             view_assigned_loan_applications(userid_buffer);
             break;
 
-        case 5: // View transaction history
+        case 5:
             show_transaction_history(userid_buffer);
             break;
 
-        case 6: // Edit credentials
+        case 6:
             edit_credentials_employee(client_socket, userid_buffer);
             break;
 
-        case 7: // Logout
+        case 7:
             employee_logout(client_socket, userid_buffer);
             return true;
 
-        case 8: // Exit
+        case 8:
+            // send(client_socket, "Exiting..", strlen("Exiting.."), 0);
+            // if (authenticated)
+            //     employee_logout(client_socket, auth_userid);
+            // close(client_socket);
+            // exit(0);
             send(client_socket, "Exiting...\n", strlen("Exiting...\n"), 0);
             if (authenticated)
                 employee_logout(client_socket, auth_userid);

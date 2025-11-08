@@ -91,19 +91,17 @@ bool handle_admin(int client_socket)
 
         switch (menu_options_recv)
         {
-        case 1: // Add new Employee
+        case 1:
             add_employee(client_socket);
             break;
-
-        case 2: // Edit Customer
+        case 2:
             edit_customer(client_socket);
             break;
-
-        case 3: // Edit Employee
+        case 3:
             edit_employee(client_socket);
             break;
-
-        case 4: // Manage User Role
+        case 4:
+        {
             int employee_id;
             int rcv_emp_id = recv(client_socket, &employee_id, sizeof(employee_id), 0);
             if (rcv_emp_id <= 0)
@@ -114,22 +112,24 @@ bool handle_admin(int client_socket)
             }
             manage_user_role(client_socket, employee_id);
             break;
-
-        case 5: // Change Password
+        }
+        case 5:
             edit_credentials_admin(client_socket, userid_buffer);
             break;
-
         case 6:
             admin_logout(client_socket, userid_buffer);
             return true;
-
-        case 7: // Exit
+        case 7:
+            // if (authenticated)
+            //     admin_logout(client_socket, auth_userid);
+            // send(client_socket, "Exiting..", strlen("Exiting.."), 0);
+            // close(client_socket);
+            // exit(0);
             send(client_socket, "Exiting...\n", strlen("Exiting...\n"), 0);
             if (authenticated)
                 admin_logout(client_socket, auth_userid);
             close(client_socket);
             exit(0);
-
         default:
             break;
         }
