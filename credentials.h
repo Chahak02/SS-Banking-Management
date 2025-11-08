@@ -14,8 +14,7 @@
 #include <errno.h>
 #include "commonStruct.h"
 
-/* ---------- Utility functions ---------- */
-
+/* Utility functions */
 void trim_trailing_spaces(char *str)
 {
 	if (str == NULL)
@@ -30,7 +29,7 @@ void trim_leading_spaces(char *str)
 {
 	if (str == NULL)
 		return;
-	// find first non-space
+
 	char *p = str;
 	while (*p && isspace((unsigned char)*p))
 		p++;
@@ -53,26 +52,15 @@ void hash_password(const char *pswd, unsigned char *hashed_pswd)
 	EVP_MD_CTX_free(context);
 }
 
-/* Convert binary SHA256 (32 bytes) to hex string (64 chars) + NUL */
-// void password_hash_to_hex(const unsigned char *hashed_pswd, char *hex_pswd)
-// {
-//     if (hashed_pswd == NULL || hex_pswd == NULL) return;
-//     for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
-//     {
-//         sprintf(hex_pswd + (i * 2), "%02x", hashed_pswd[i]);
-//     }
-//     hex_pswd[SHA256_DIGEST_LENGTH * 2] = '\0'; // important NUL terminator
-// }
-
-// password_hash_to_hex(hashed_pswd, hex_pswd);
+// Password_hash_to_hex(hashed_pswd, hex_pswd);
 void password_hash_to_hex(const unsigned char *hashed_pswd, char *hex_pswd)
 {
 	for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
 		sprintf(hex_pswd + (i * 2), "%02x", hashed_pswd[i]);
-	hex_pswd[SHA256_DIGEST_LENGTH * 2] = '\0'; // FIXED: added null terminator
+	hex_pswd[SHA256_DIGEST_LENGTH * 2] = '\0';
 }
 
-/* ---------- Helper: safe open with create ---------- */
+/* Helper: safe open with create */
 static int safe_open_rw_create(const char *path)
 {
 	int fd = open(path, O_RDWR | O_CREAT, 0644);
@@ -83,10 +71,7 @@ static int safe_open_rw_create(const char *path)
 	return fd;
 }
 
-/* ---------- Password edit functions (customer/employee/manager/admin) ---------- */
-/* These are similar in approach: receive new password, hash it, write it back with a write-lock. */
-/* I kept function names/signatures same as your original file. */
-
+// functions to edit customer's credentials (change password)
 void edit_credentials_customer(int client_socket, int user_id)
 {
 	struct customer temp;
@@ -164,6 +149,7 @@ void edit_credentials_customer(int client_socket, int user_id)
 	close(fd);
 }
 
+// functions to edit employee's credentials (change password)
 void edit_credentials_employee(int client_socket, int user_id)
 {
 	struct employee temp;
@@ -238,6 +224,7 @@ void edit_credentials_employee(int client_socket, int user_id)
 	close(fd);
 }
 
+// functions to edit manager's credentials (change password)
 void edit_credentials_manager(int client_socket, int user_id)
 {
 	struct manager temp;
@@ -312,6 +299,7 @@ void edit_credentials_manager(int client_socket, int user_id)
 	close(fd);
 }
 
+// functions to edit admin's credentials (change password)
 void edit_credentials_admin(int client_socket, int user_id)
 {
 	struct admin temp;
@@ -386,9 +374,7 @@ void edit_credentials_admin(int client_socket, int user_id)
 	close(fd);
 }
 
-/* ---------- Authentication functions ---------- */
-/* These compute the hex hash and compare. If they update is_online they take a write lock briefly. */
-
+// functions to authenticate customer's credentials
 bool authenticate_customer(int client_socket, int user_id, char *pswd)
 {
 	struct customer temp;
@@ -468,6 +454,7 @@ bool authenticate_customer(int client_socket, int user_id, char *pswd)
 	return false;
 }
 
+// functions to authenticate employee's credentials
 bool authenticate_employee(int client_socket, int user_id, char *pswd)
 {
 	struct employee temp;
@@ -546,6 +533,7 @@ bool authenticate_employee(int client_socket, int user_id, char *pswd)
 	return false;
 }
 
+// functions to authenticate manager's credentials
 bool authenticate_manager(int client_socket, int user_id, char *pswd)
 {
 	struct manager temp;
@@ -619,6 +607,7 @@ bool authenticate_manager(int client_socket, int user_id, char *pswd)
 	return false;
 }
 
+// functions to authenticate admin's credentials
 bool authenticate_admin(int client_socket, int user_id, char *pswd)
 {
 	struct admin temp;
@@ -692,9 +681,7 @@ bool authenticate_admin(int client_socket, int user_id, char *pswd)
 	return false;
 }
 
-/* ---------- Logout functions (set is_online = false) ---------- */
-/* These also take a simple write lock while updating the record */
-
+// functions to logout customers
 void customer_logout(int client_socket, int user_id)
 {
 	struct customer temp;
@@ -751,6 +738,7 @@ void customer_logout(int client_socket, int user_id)
 	close(fd);
 }
 
+// functions to logout employees
 void employee_logout(int client_socket, int user_id)
 {
 	struct employee temp;
@@ -807,6 +795,7 @@ void employee_logout(int client_socket, int user_id)
 	close(fd);
 }
 
+// functions to logout managers
 void manager_logout(int client_socket, int user_id)
 {
 	struct manager temp;
@@ -863,6 +852,7 @@ void manager_logout(int client_socket, int user_id)
 	close(fd);
 }
 
+// functions to logout admins
 void admin_logout(int client_socket, int user_id)
 {
 	struct admin temp;

@@ -91,7 +91,7 @@ bool handle_manager(int client_socket)
 
         switch (menu_options_recv)
         {
-        case 1:
+        case 1: // Delete customer account
         {
             char buff_cuss[1024];
             int r = recv(client_socket, buff_cuss, sizeof(buff_cuss) - 1, 0);
@@ -107,11 +107,11 @@ bool handle_manager(int client_socket)
             break;
         }
 
-        case 2:
+        case 2: // View applied loan applications
             view_applied_loan_applications();
             break;
 
-        case 3:
+        case 3: // Assign loan to employee
             assign_loan(client_socket);
             break;
 
@@ -131,15 +131,15 @@ bool handle_manager(int client_socket)
             break;
         }
 
-        case 5:
+        case 5: // Edit manager credentials
             edit_credentials_manager(client_socket, userid_buffer);
             break;
 
-        case 6:
+        case 6: // Logout manager
             manager_logout(client_socket, userid_buffer);
             return true;
 
-        case 7:
+        case 7: // Exit
             send(client_socket, "Exiting...\n", strlen("Exiting...\n"), 0);
             if (authenticated)
                 manager_logout(client_socket, auth_userid);
